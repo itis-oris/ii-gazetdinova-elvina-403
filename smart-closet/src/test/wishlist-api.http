@@ -1,0 +1,91 @@
+
+@host = http://localhost:8080
+
+### Login (form-login). После успешного логина в куках появится JSESSIONID + XSRF-TOKEN.
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+username=elvina_admin&password=Elvinablossom28
+
+###
+
+### --- WISHLIST ---
+
+### Получить вишлист текущего пользователя
+GET {{host}}/api/wishlist
+Accept: application/json
+
+###
+
+### Добавить элемент вишлиста
+POST {{host}}/api/wishlist
+Content-Type: application/json
+X-XSRF-TOKEN: {{xsrfToken}}
+
+{
+  "name": "Белые кроссовки",
+  "price": 5990.00,
+  "url": "https://example.com/sneakers",
+  "note": "К лету"
+}
+
+###
+
+### Получить элемент по id
+GET {{host}}/api/wishlist/1
+Accept: application/json
+
+###
+
+### Обновить элемент
+PUT {{host}}/api/wishlist/1
+Content-Type: application/json
+X-XSRF-TOKEN: {{xsrfToken}}
+
+{
+  "name": "Обновлённое название",
+  "price": 6500.00,
+  "url": "https://example.com/sneakers-v2",
+  "note": "После пересмотра бюджета"
+}
+
+###
+
+### Удалить элемент
+DELETE {{host}}/api/wishlist/1
+X-XSRF-TOKEN: {{xsrfToken}}
+
+###
+
+### Проверка валидации (пустое имя) — ожидаем 400 + ApiError.fieldErrors
+POST {{host}}/api/wishlist
+Content-Type: application/json
+X-XSRF-TOKEN: {{xsrfToken}}
+
+{
+  "name": "",
+  "price": -10
+}
+
+###
+
+### --- COLORS (HTTP к color-service + Redis-кэш) ---
+
+### Получить инфо о цвете (через color-service по HTTP)
+### Первый запрос сходит на color-service, второй с тем же hex придёт из Redis.
+GET {{host}}/api/colors/info?hex=FF0000
+Accept: application/json
+
+###
+
+### Принудительный пересчёт рекомендаций — публикует сообщение в Kafka
+POST {{host}}/api/recommendations/1/refresh
+X-XSRF-TOKEN: {{xsrfToken}}
+
+###
+
+### --- Прямой доступ к color-service (8081), минуя main app ---
+GET http://localhost:8081/api/colors/info?hex=00FF00
+Accept: application/json
+
+###
